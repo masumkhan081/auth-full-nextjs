@@ -40,3 +40,6 @@ yarn-error.log*
 
 # Ignore custom docs
 /docs/auth_architecture_mental_model.md
+
+# Ignore docs folder entirely
+/docs/
