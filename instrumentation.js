@@ -1,11 +1,13 @@
-import { db } from "./db";
-import { users } from "./db/schema";
-import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
-
 export async function register() {
   // Only run the seed script on the Node.js server environment (not edge)
+  // We MUST dynamically import Node-only dependencies inside this block,
+  // otherwise they will crash the Edge runtime with __import_unsupported
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { db } = await import("./db");
+    const { users } = await import("./db/schema");
+    const { eq } = await import("drizzle-orm");
+    const bcrypt = (await import("bcryptjs")).default;
+
     console.log("🌱 [Seed] Running startup checks...");
 
     const superAdminEmail = process.env.SUPERADMIN_EMAIL;
