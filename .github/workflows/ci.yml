@@ -1,0 +1,48 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - staging
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build & Code Verification
+    runs-on: ubuntu-latest
+
+    # Provide safe dummy environment variables so Next.js build passes in CI
+    # without needing access to real production database credentials
+    env:
+      DATABASE_URL: "postgresql://postgres:dummy@localhost:5432/postgres"
+      DIRECT_URL: "postgresql://postgres:dummy@localhost:5432/postgres"
+      SUPERADMIN_EMAIL: "admin@example.com"
+      SUPERADMIN_NAME: "Super Admin"
+      SUPERADMIN_PASSWORD: "SuperAdminPassword123!"
+      EMAIL_PROVIDER: "resend"
+      RESEND_API_KEY: "re_dummy_key_for_ci_testing"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Setup Node.js 20 with pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies (Strict frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify Next.js Build
+        run: pnpm run build
